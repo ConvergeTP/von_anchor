@@ -82,7 +82,7 @@ from von_anchor.tails import Tails
 from von_anchor.util import (
     box_ids,
     cred_def_id,
-    cred_def_id2seq_no,
+    cred_def_id2schema_seq_no_or_id,
     creds_display,
     proof_req2wql_all,
     proof_req_attr_referents,
@@ -219,7 +219,7 @@ def _get_cacheable(anchor, s_key, seq_no, issuer_did):
         print('.. Thread {} got rev reg def {}'.format(current_thread().name, rr_id))
 
 
-@pytest.mark.skipif(True, reason='short-circuiting')
+@pytest.mark.skipif(False, reason='short-circuiting')
 @pytest.mark.asyncio
 async def test_anchors_api(
         pool_ip,
@@ -625,7 +625,7 @@ async def test_anchors_api(
     try:  # exercise error path: bad cred def id
         await san.build_proof_req_json({
             'not-a-cdid': {
-                'attrs': schema_data[seq_no2schema_id[cred_def_id2seq_no(cd_id[s_id])]]['attr_names'][0:2]
+                'attrs': schema_data[seq_no2schema_id[cred_def_id2schema_seq_no_or_id(cd_id[s_id])]]['attr_names'][0:2]
             } for s_id in schema_data
         })
         assert False
@@ -645,7 +645,7 @@ async def test_anchors_api(
 
     big_proof_req_json = await san.build_proof_req_json({
         cd_id[s_id]: {
-            'attrs': schema_data[seq_no2schema_id[cred_def_id2seq_no(cd_id[s_id])]]['attr_names'][0:2]
+            'attrs': schema_data[seq_no2schema_id[cred_def_id2schema_seq_no_or_id(cd_id[s_id])]]['attr_names'][0:2]
         } for s_id in schema_data
     })
     print('\n\n== 5 == Built sample proof request: {}'.format(ppjson(big_proof_req_json)))
@@ -811,7 +811,7 @@ async def test_anchors_api(
         pass
 
     x_cred = json.loads(cred_json[S_ID['BC']])
-    x_cred['cred_def_id'] = cred_def_id(bcran.did, cred_def_id2seq_no(x_cred['cred_def_id']) + 100)
+    x_cred['cred_def_id'] = cred_def_id(bcran.did, cred_def_id2schema_seq_no_or_id(x_cred['cred_def_id']) + 100)
     try:  # exercise error path: cred def id not present
         await bcohan.store_cred(
             json.dumps(x_cred),
@@ -2169,7 +2169,7 @@ async def test_anchors_api(
     await bcohan.close()  # exercise on closed wallet with config to archive caches on close - should warn and carry on
 
 
-@pytest.mark.skipif(True, reason='short-circuiting')
+@pytest.mark.skipif(False, reason='short-circuiting')
 @pytest.mark.asyncio
 async def test_offline(pool_name, pool_genesis_txn_path, pool_genesis_txn_file, path_home):
 
@@ -2303,7 +2303,7 @@ async def test_offline(pool_name, pool_genesis_txn_path, pool_genesis_txn_file, 
     assert len(remaining) == 0
 
 
-@pytest.mark.skipif(True, reason='short-circuiting')
+@pytest.mark.skipif(False, reason='short-circuiting')
 @pytest.mark.asyncio
 async def test_anchors_on_nodepool_restart(pool_name, pool_genesis_txn_path, pool_genesis_txn_file, path_home):
 
@@ -2383,7 +2383,7 @@ async def test_anchors_on_nodepool_restart(pool_name, pool_genesis_txn_path, poo
     await w_xxx.remove()
 
 
-@pytest.mark.skipif(True, reason='short-circuiting')
+@pytest.mark.skipif(False, reason='short-circuiting')
 @pytest.mark.asyncio
 async def test_revo_cache_reg_update_maintenance(pool_name, pool_genesis_txn_path, pool_genesis_txn_file, path_temp):
 
@@ -2624,7 +2624,7 @@ async def test_revo_cache_reg_update_maintenance(pool_name, pool_genesis_txn_pat
     logging.getLogger('von_anchor.anchor.rrbuilder').removeHandler(rrbx_handler)  # restore original state
 
 
-@pytest.mark.skipif(True, reason='short-circuiting')
+@pytest.mark.skipif(False, reason='short-circuiting')
 @pytest.mark.asyncio
 async def test_cache_locking(pool_name, pool_genesis_txn_path, pool_genesis_txn_file):
     THREADS = 256
@@ -2693,7 +2693,7 @@ async def test_cache_locking(pool_name, pool_genesis_txn_path, pool_genesis_txn_
         print('\n\n== 1 == Exercised cache locks, elapsed time: {} sec'.format(elapsed))
 
 
-@pytest.mark.skipif(True, reason='short-circuiting')
+@pytest.mark.skipif(False, reason='short-circuiting')
 @pytest.mark.asyncio
 async def test_anchor_reseed(
         pool_name,
@@ -2837,7 +2837,7 @@ async def test_anchor_reseed(
         assert rsan.wallet.auto_remove  # make sure auto-remove configuration survives reset
     await rsan.wallet.close()  # it's a new wallet object
 
-@pytest.mark.skipif(True, reason='short-circuiting')
+@pytest.mark.skipif(False, reason='short-circuiting')
 @pytest.mark.asyncio
 async def test_anchors_cache_only(
         pool_name,
@@ -3095,7 +3095,7 @@ async def test_anchors_cache_only(
     # PSPC org book anchor provides default intervals per cred def id, SRI anchor builds proof req
     cd_id2spec = await pspcoban.offline_intervals(list(cd_id.values()))
     for c in cd_id2spec:
-        cd_id2spec[c]['attrs'] = schema_data[seq_no2schema_id[cred_def_id2seq_no(c)]]['attr_names']
+        cd_id2spec[c]['attrs'] = schema_data[seq_no2schema_id[cred_def_id2schema_seq_no_or_id(c)]]['attr_names']
     proof_req_json = await san.build_proof_req_json(cd_id2spec)
     proof_req = json.loads(proof_req_json)
     print('\n\n== 7 == Proof req from cache data: {}'.format(ppjson(proof_req_json)))
@@ -3146,7 +3146,7 @@ async def test_anchors_cache_only(
     # SRI anchor builds proof req for single cred on FAV-NUM cred-def
     cd_id2spec = await pspcoban.offline_intervals([cd_id[S_ID['FAV-NUM']]])
     cd_id2spec[cd_id[S_ID['FAV-NUM']]]['attrs'] = schema_data[
-        seq_no2schema_id[cred_def_id2seq_no(cd_id[S_ID['FAV-NUM']])]]['attr_names']  # request all attrs in schema
+        seq_no2schema_id[cred_def_id2schema_seq_no_or_id(cd_id[S_ID['FAV-NUM']])]]['attr_names']  # request all attrs
     proof_req_json = await san.build_proof_req_json(cd_id2spec)
     proof_req = json.loads(proof_req_json)
     print('\n\n== 16 == Proof req for single fav-num cred from cache data: {}'.format(ppjson(proof_req_json)))
@@ -3178,7 +3178,7 @@ async def test_anchors_cache_only(
     # SRI anchor builds proof req for single cred on FAV-NUM cred-def
     cd_id2spec = await pspcoban.offline_intervals([cd_id[S_ID['FAV-NUM']]])
     cd_id2spec[cd_id[S_ID['FAV-NUM']]]['attrs'] = schema_data[
-        seq_no2schema_id[cred_def_id2seq_no(cd_id[S_ID['FAV-NUM']])]]['attr_names']  # request all attrs in schema
+        seq_no2schema_id[cred_def_id2schema_seq_no_or_id(cd_id[S_ID['FAV-NUM']])]]['attr_names']  # request all attrs
     proof_req_json = await san.build_proof_req_json(cd_id2spec)
     proof_req = json.loads(proof_req_json)
     print('\n\n== 22 == Proof req for single fav-num cred from cache data: {}'.format(ppjson(proof_req_json)))
@@ -3239,8 +3239,6 @@ async def test_anchors_cache_only(
 
     # PSPC org book anchor provides default intervals per cred def id, SRI anchor builds proof req
     cd_id2spec = await pspcoban.offline_intervals([cd_id[S_ID['FAV-NUM']]])
-    # cd_id2spec[cd_id[S_ID['FAV-NUM']]]['attrs'] = schema_data[  # recall: can omit 'attrs' to pick up all attrs
-        # seq_no2schema_id[cred_def_id2seq_no(cd_id[S_ID['FAV-NUM']])]]['attr_names']
     proof_req_json = await san.build_proof_req_json(cd_id2spec)
     proof_req = json.loads(proof_req_json)
     print('\n\n== 33 == Proof req from cache data on fav-num cred def attrs: {}'.format(ppjson(proof_req_json)))
@@ -3279,9 +3277,7 @@ async def test_anchors_cache_only(
     ArchivableCaches.purge_archives(pspcoban.dir_cache, False)
 
 
-@pytest.mark.skipif(
-    not callable(getattr(anoncreds, 'prover_set_credential_attr_tag_policy', None)),
-    reason='credential attr tag policy not yet in anoncreds')
+@pytest.mark.skipif(False, reason='short-circuiting')
 @pytest.mark.asyncio
 async def test_catpol(
         pool_name,
@@ -3506,6 +3502,7 @@ async def test_catpol(
             cred_infos = json.loads(await pspcoban.get_cred_infos_by_q(json.dumps(wql[attr])))
             assert len(cred_infos) == (1 if attr in catpol else 0)
             print('\n\n== 7.{} == WQL: {}, found {} as expected'.format(i, ppjson(wql[attr]), len(cred_infos)))
+            i += 1
 
         # PSPC Org Book clears credential attr tag policy, non-retroactively
         await pspcoban.set_cred_attr_tag_policy(cd_id[S_ID['DRINK']], None, retroactive=False)
@@ -3520,6 +3517,7 @@ async def test_catpol(
             cred_infos = json.loads(await pspcoban.get_cred_infos_by_q(json.dumps(wql[attr])))
             assert len(cred_infos) == {'drink': 1, 'ident': 0}[attr]  # old policy for creds in wallet before set-catpol
             print('\n\n== 9.{} == WQL: {}, found {} as expected'.format(i, ppjson(wql[attr]), len(cred_infos)))
+            i += 1
 
         # PSPC Org Book sets credential attr tag policy, retroactively
         await pspcoban.set_cred_attr_tag_policy(cd_id[S_ID['DRINK']], ['ident'], retroactive=True)
@@ -3534,6 +3532,7 @@ async def test_catpol(
             cred_infos = json.loads(await pspcoban.get_cred_infos_by_q(json.dumps(wql[attr])))
             assert len(cred_infos) == (1 if attr in catpol else 0)  # catpol is retroactive
             print('\n\n== 11.{} == WQL: {}, found {} as expected'.format(i, ppjson(wql[attr]), len(cred_infos)))
+            i += 1
 
         # PSPC Org Book clears credential attr tag policy, retroactively
         await pspcoban.set_cred_attr_tag_policy(cd_id[S_ID['DRINK']], None, retroactive=True)
@@ -3548,9 +3547,10 @@ async def test_catpol(
             cred_infos = json.loads(await pspcoban.get_cred_infos_by_q(json.dumps(wql[attr])))
             assert len(cred_infos) == 1  # catpol is retroactive
             print('\n\n== 13.{} == WQL: {}, found {} as expected'.format(i, ppjson(wql[attr]), len(cred_infos)))
+            i += 1
 
 
-@pytest.mark.skipif(True, reason='short-circuiting')
+@pytest.mark.skipif(False, reason='short-circuiting')
 @pytest.mark.asyncio
 async def test_util_wranglers(
         pool_name,
@@ -3900,7 +3900,7 @@ async def test_util_wranglers(
         assert len(req_creds['requested_attributes']) == 1
 
 
-@pytest.mark.skipif(True, reason='short-circuiting')
+@pytest.mark.skipif(False, reason='short-circuiting')
 @pytest.mark.asyncio
 async def test_crypto(
         pool_name,
@@ -4233,7 +4233,7 @@ async def test_crypto(
         print('\n\n== 21 == PSPC Org Book anchor failed auto-verification of SRI anchor signature, as expected')
 
 
-@pytest.mark.skipif(True, reason='short-circuiting')
+@pytest.mark.skipif(False, reason='short-circuiting')
 @pytest.mark.asyncio
 async def test_share_wallet(
         pool_name,
@@ -4265,7 +4265,7 @@ async def test_share_wallet(
         print('\n\n== 2 == SRI, Nominal anchor share common wallet OK')
 
 
-@pytest.mark.skipif(True, reason='short-circuiting')
+@pytest.mark.skipif(False, reason='short-circuiting')
 @pytest.mark.asyncio
 async def test_least_role():
 
@@ -4285,7 +4285,7 @@ async def test_least_role():
     print('\n\n== 1 == Anchor profiles return correct least role OK')
 
 
-@pytest.mark.skipif(True, reason='short-circuiting')
+@pytest.mark.skipif(False, reason='short-circuiting')
 @pytest.mark.asyncio
 async def test_did_endpoints():
 
@@ -4436,7 +4436,8 @@ async def test_free_holder_prover(
         now = int(time())
         S_ID = {
             'VER-PERSON': schema_id(bcpan.did, 'verified-person', '{}.0'.format(now)),
-            'VER-BUS-REL': schema_id(bcpan.did, 'verified-provincial-business-relationship', '{}.0'.format(now))
+            'VER-BUS-REL': schema_id(bcpan.did, 'verified-provincial-business-relationship', '{}.0'.format(now)),
+            'SRI-AUTHZ': schema_id(san.did, 'sri-authz', '{}.0'.format(now))
         }
 
         schema_data = {
@@ -4459,6 +4460,15 @@ async def test_free_holder_prover(
                     'relation',
                     'fromDate',
                     'toDate'
+                ]
+            },
+            S_ID['SRI-AUTHZ']: {
+                'name': schema_key(S_ID['SRI-AUTHZ']).name,
+                'version': schema_key(S_ID['SRI-AUTHZ']).version,
+                'attr_names': [
+                    'businessNumber',
+                    'year',
+                    'limit'
                 ]
             }
         }
@@ -4500,8 +4510,9 @@ async def test_free_holder_prover(
         i = 0
         seq_no = None
         for s_id in schema_data:
+            an = san if s_id == S_ID['SRI-AUTHZ'] else bcpan
             s_key = schema_key(s_id)
-            await bcpan.send_schema(json.dumps(schema_data[s_id]))
+            await an.send_schema(json.dumps(schema_data[s_id]))
             schema_json[s_id] = await bcpan.get_schema(s_key)
             assert json.loads(schema_json[s_id])  # should exist now
 
@@ -4511,11 +4522,40 @@ async def test_free_holder_prover(
             assert schema[s_id]
             i += 1
 
+        # BC Proctor anchor creates, stores, publishes cred definitions to ledger; creates cred offers
+        i = 0
+        for s_id in schema_data:
+            an = san if s_id == S_ID['SRI-AUTHZ'] else bcpan
+            s_key = schema_key(s_id)
+
+            await an.send_cred_def(s_id, revo=False, rr_size=None)  # omit revocation for this demo
+            cd_id[s_id] = cred_def_id(s_key.origin_did, schema[s_id]['seqNo'])
+
+            cred_def_json[s_id] = await bcpan.get_cred_def(cd_id[s_id])  # ought to exist now
+            cred_def[s_id] = json.loads(cred_def_json[s_id])
+            print('\n\n== 3.{}.0 == Cred def [{} v{}]: {}'.format(
+                i,
+                s_key.name,
+                s_key.version,
+                ppjson(json.loads(cred_def_json[s_id]))))
+            assert cred_def[s_id].get('schemaId', None) == str(schema[s_id]['seqNo'])
+
+            cred_offer_json[s_id] = await an.create_cred_offer(schema[s_id]['seqNo'])
+            cred_offer[s_id] = json.loads(cred_offer_json[s_id])
+            print('\n\n== 3.{}.1 == Credential offer (ties issuer to cred def) [{} v{}]: {}'.format(
+                i,
+                s_key.name,
+                s_key.version,
+                ppjson(cred_offer_json[s_id])))
+            i += 1
+
+        print(Ink.GREEN('\n\n== Bill applies to BC Proctor for verified person cred =='))
+
         # Local and pairwise DIDs: Holder-Prover and BC Proctor agents exchange
         didinfo_bcpan = await bcpan.wallet.create_local_did(None, None)
         diddoc = DIDDoc(didinfo_bcpan.did)
         diddoc.set(PublicKey(didinfo_bcpan.did, '1', didinfo_bcpan.verkey))
-        print('\n\n== 3 == BC Proctor DID Doc to holder-prover: {}'.format(ppjson(diddoc.to_json())))
+        print('\n\n== 4 == BC Proctor DID Doc to holder-prover: {}'.format(ppjson(diddoc.to_json())))
 
         pairwise = {}
         pubkey_bcpan = diddoc.pubkey['did:sov:{}#1'.format(diddoc.did)].value
@@ -4525,7 +4565,7 @@ async def test_free_holder_prover(
             metadata={'for': 'bcpan'})  # nicety in case of later search
         diddoc = DIDDoc(pairwise['hpan2bcpan'].my_did)
         diddoc.set(PublicKey(pairwise['hpan2bcpan'].my_did, '1', pairwise['hpan2bcpan'].my_verkey))
-        print('\n\n== 4 == Holder-prover DID Doc to BC Proctor: {}'.format(ppjson(diddoc.to_json())))
+        print('\n\n== 5 == Holder-prover DID Doc to BC Proctor: {}'.format(ppjson(diddoc.to_json())))
 
         pairwise['bcpan2hpan'] = await bcpan.wallet.write_pairwise(
             their_did=pairwise['hpan2bcpan'].my_did,
@@ -4533,34 +4573,8 @@ async def test_free_holder_prover(
             my_did=didinfo_bcpan.did,
             # my_verkey is already in wallet by construction
             metadata={'for': 'hpan'})  # nicety in case of later search
-        print('\n\n== 5 == Pairwise relations between Holder-Prover and BC Proctor: {}'.format(
+        print('\n\n== 6 == Pairwise relations between Holder-Prover and BC Proctor: {}'.format(
             ppjson({k: pairwise[k].metadata for k in pairwise})))
-
-        # BC Proctor anchor creates, stores, publishes cred definitions to ledger; creates cred offers
-        i = 0
-        for s_id in schema_data:
-            s_key = schema_key(s_id)
-
-            await bcpan.send_cred_def(s_id, revo=False, rr_size=None)  # omit revocation for this demo
-            cd_id[s_id] = cred_def_id(s_key.origin_did, schema[s_id]['seqNo'])
-
-            cred_def_json[s_id] = await bcpan.get_cred_def(cd_id[s_id])  # ought to exist now
-            cred_def[s_id] = json.loads(cred_def_json[s_id])
-            print('\n\n== 6.{}.0 == Cred def [{} v{}]: {}'.format(
-                i,
-                s_key.name,
-                s_key.version,
-                ppjson(json.loads(cred_def_json[s_id]))))
-            assert cred_def[s_id].get('schemaId', None) == str(schema[s_id]['seqNo'])
-
-            cred_offer_json[s_id] = await bcpan.create_cred_offer(schema[s_id]['seqNo'])
-            cred_offer[s_id] = json.loads(cred_offer_json[s_id])
-            print('\n\n== 6.{}.1 == Credential offer [{} v{}]: {}'.format(
-                i,
-                s_key.name,
-                s_key.version,
-                ppjson(cred_offer_json[s_id])))
-            i += 1
 
         # Holder-Prover Verified Person credential request to Province (assume legitimate identity proofing process)
         s_id = S_ID['VER-PERSON']
@@ -4590,6 +4604,7 @@ async def test_free_holder_prover(
             cred_json[s_id],
             cred_req_metadata_json[s_id])
         print('\n\n== 9 == Cred id on {} in wallet: {}'.format(s_id, cred_id[s_id]))
+        print(Ink.GREEN('\n\n== Time passes; Bill applies to BC Proctor for verified business relationship cred =='))
 
         # BC Proctor agent requests proof of identity via verified person, to check for right to verified relation
         proof_req_json = await bcpan.build_proof_req_json({
@@ -4666,9 +4681,11 @@ async def test_free_holder_prover(
             cred_json[s_id],
             cred_req_metadata_json[s_id])
         print('\n\n== 19 == Cred id on {} in wallet: {}'.format(s_id, cred_id[s_id]))
+        print(Ink.GREEN('\n\n== Time passes; Bill applies to SRI anchor for supplier registration cred =='))
 
         # Local and pairwise DIDs: Holder-Prover and SRI agents exchange, preparing for presentation of proof to enrol
         didinfo = {}
+        pairwise = {}
         didinfo['san'] = await san.wallet.create_local_did(None, None)  # SRI agent sends to Holder-Prover's
         pairwise['hpan2san'] = await hpan.wallet.write_pairwise(
             their_did=didinfo['san'].did,
@@ -4679,7 +4696,8 @@ async def test_free_holder_prover(
             their_verkey=pairwise['hpan2san'].my_verkey,
             my_did=didinfo['san'].did,
             metadata={'for': 'hpan'})  # nicety for later search
-        print('\n\n== 20 == Pairwise relations between Holder-Prover and SRI: {}'.format(ppjson(pairwise)))
+        print('\n\n== 20 == Pairwise relations between Holder-Prover and SRI agent: {}'.format(
+            ppjson({k: pairwise[k].metadata for k in pairwise})))
 
         # SRI agent requests proof of identity via verified person and verified business relationship
         proof_req_json = await bcpan.build_proof_req_json({
@@ -4722,3 +4740,54 @@ async def test_free_holder_prover(
 
         revealed = revealed_attrs(proof_q)
         print('\n\n== 27 == Revealed attributes from multi-cred proof: {}'.format(ppjson(revealed)))
+        '''
+        Looks like {
+            "MdANKCkSgQBu8cC2txDXNT:3:CL:32:tag": {
+                "relation": "signing officer",
+                "fromdate": "2019-07-19",
+                "businessnumber": "1337",
+                "todate": "2020-07-18"
+            },
+            "MdANKCkSgQBu8cC2txDXNT:3:CL:31:tag": {
+                "socialinsurancenumber": "123456789",
+                "legalname": "Bill Lee"
+            }
+        }
+        '''
+
+        # Extract SRI authorization cred data from revealed attrs
+        cred_data[S_ID['SRI-AUTHZ']] = {
+            'businessNumber': revealed[cd_id[S_ID['VER-BUS-REL']]][canon('businessNumber')],
+            'year': revealed[cd_id[S_ID['VER-BUS-REL']]][canon('fromDate')].split('-')[0],
+            'limit': 100000
+        }
+
+        # Holder-Prover SRI authorization credential request to SRI anchor
+        s_id = S_ID['SRI-AUTHZ']
+        (cred_req_json[s_id], cred_req_metadata_json[s_id]) = await hpan.create_cred_req(
+            cred_offer_json[s_id],
+            cd_id[s_id],
+            pairwise['hpan2san'].my_did)
+        cred_req[s_id] = json.loads(cred_req_json[s_id])
+        print('\n\n== 28 == SRI authorization credential request: metadata {}, cred req {}'.format(
+            ppjson(cred_req_metadata_json[s_id]),
+            ppjson(cred_req_json[s_id])))
+        assert json.loads(cred_req_json[s_id])
+        assert cred_req[s_id]['prover_did'] == pairwise['san2hpan'].their_did
+        assert cred_req[s_id]['prover_did'] == pairwise['hpan2san'].my_did
+
+        # SRI anchor issues verified-person cred
+        (cred_json[s_id], _) = await san.create_cred(
+            cred_offer_json[s_id],
+            cred_req_json[s_id],
+            cred_data[s_id])
+        assert json.loads(cred_json[s_id])
+        print('\n\n== 29 == Issuer created {} cred: {}'.format(s_id, ppjson(cred_json[s_id])))
+
+        # Holder-Prover stores cred
+        cred = json.loads(cred_json[s_id])
+        cred_id[s_id] = await hpan.store_cred(
+            cred_json[s_id],
+            cred_req_metadata_json[s_id])
+        print('\n\n== 30 == Cred id on {} in wallet: {}'.format(s_id, cred_id[s_id]))
+

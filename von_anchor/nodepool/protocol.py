@@ -31,13 +31,16 @@ class Protocol(Enum):
     Class encapsulating indy-node transaction particulars by protocol version.
     """
 
-    V_13 = ProtocolMap('1.3', 1)
-    V_14 = ProtocolMap('1.4', 2)
-    V_15 = ProtocolMap('1.5', 2)
-    V_16 = ProtocolMap('1.6', 2)
-    V_17 = ProtocolMap('1.7', 2)
-    V_18 = ProtocolMap('1.8', 2)
-    DEFAULT = ProtocolMap('1.8', 2)
+    V1_3 = ProtocolMap('1.3', 1)
+    V1_4 = ProtocolMap('1.4', 2)
+    V1_5 = ProtocolMap('1.5', 2)
+    V1_6 = ProtocolMap('1.6', 2)
+    V1_7 = ProtocolMap('1.7', 2)
+    V1_8 = ProtocolMap('1.8', 2)
+    V1_9 = ProtocolMap('1.9', 2)
+    V1_10 = ProtocolMap('1.10', 2)
+    V1_11 = ProtocolMap('1.11', 2)
+    DEFAULT = ProtocolMap('1.11', 2)
 
     @staticmethod
     def get(version: str) -> 'Protocol':
@@ -45,7 +48,7 @@ class Protocol(Enum):
         Return enum instance corresponding to input version value ('1.6' etc.)
         """
 
-        return Protocol.V_13 if version == Protocol.V_13.value.name else Protocol.DEFAULT
+        return Protocol.V1_3 if version == Protocol.V1_3.value.name else Protocol.DEFAULT
 
     def __str__(self) -> str:
         return self.name
@@ -70,15 +73,15 @@ class Protocol(Enum):
         """
 
         if for_box_id:
-            return '' if self == Protocol.V_13 else ':tag'
+            return '' if self == Protocol.V1_3 else ':tag'
         return 'tag'
 
     def cred_def_id(self, issuer_did: str, schema_seq_no: int) -> str:
         """
-        Return credential definition identifier for input issuer DID and schema sequence number.
+        Return credential definition identifier for input issuer DID and schema sequence number (or schema identifier).
 
         :param issuer_did: DID of credential definition issuer
-        :param schema_seq_no: schema sequence number
+        :param schema_seq_no: schema sequence number (or, for some non-von_anchor implementations, a schema id)
         :return: credential definition identifier
         """
 
@@ -96,7 +99,7 @@ class Protocol(Enum):
         """
 
         rv = None
-        if self == Protocol.V_13:
+        if self == Protocol.V1_3:
             rv = SchemaKey(txn['identifier'], txn['data']['name'], txn['data']['version'])
         else:
             txn_txn = txn.get('txn', None) or txn  # may have already run this txn through txn2data() below
@@ -116,7 +119,7 @@ class Protocol(Enum):
         """
 
         rv_json = json.dumps({})
-        if self == Protocol.V_13:
+        if self == Protocol.V1_3:
             rv_json = json.dumps(txn['result'].get('data', {}))
         else:
             rv_json = json.dumps((txn['result'].get('data', {}) or {}).get('txn', {}))  # "data": null for no such txn
@@ -132,7 +135,7 @@ class Protocol(Enum):
         """
 
         rv = None
-        if self == Protocol.V_13:
+        if self == Protocol.V1_3:
             rv = txn['result']['txnTime']
         else:
             rv = txn['result']['txnMetadata']['txnTime']
